@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yazı — Berkay Yüklü</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/>
+      <text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+      <circle cx="28" cy="10" r="3" fill="url(#g1)" opacity="0.8"/>
+    </svg>
+    <span class="nav-logo-text">Berkay Yüklü</span>
+  </a>
+  <div class="nav-center">
+    <a href="index.html" class="nav-link">Ana Sayfa</a>
+    <a href="blog.html" class="nav-link active">Blog</a>
+    <a href="shortcuts.html" class="nav-link">Projeler</a>
+    <a href="about.html" class="nav-link">Hakkında</a>
+    <a href="admin/index.html" class="nav-link" id="adminLink" style="display:none;color:var(--gold)">⚙ Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-outline" id="loginBtn">Giriş Yap</button>
+    <button class="btn btn-gold" id="registerBtn">Kayıt Ol</button>
+    <div class="user-menu" id="userMenu">
+      <button class="user-avatar-btn" id="userMenuBtn">
+        <img class="user-avatar" id="userAvatar" src="" alt="">
+        <span class="user-name" id="userDisplayName"></span>
+      </button>
+      <div class="user-dropdown">
+        <a href="profile.html">👤 Profilim</a>
+        <div class="divider"></div>
+        <button onclick="signOut()">↩ Çıkış Yap</button>
+      </div>
+    </div>
+  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">🏠 Ana Sayfa</a>
+  <a href="blog.html">📝 Blog</a>
+</div>
+
+<main>
+  <div class="container" style="max-width:800px">
+
+    <!-- GERİ -->
+    <div style="padding:24px 0 0">
+      <a href="blog.html" style="color:var(--text-muted);text-decoration:none;font-size:0.875rem;display:inline-flex;align-items:center;gap:6px;transition:var(--transition)"
+        onmouseover="this.style.color='var(--gold-light)'" onmouseout="this.style.color='var(--text-muted)'">
+        ← Blog'a Dön
+      </a>
+    </div>
+
+    <!-- PREMIUM OVERLAY (gizli) -->
+    <div id="premiumOverlay" style="display:none">
+      <div class="locked-overlay" style="margin-top:40px">
+        <div class="locked-icon">🔒</div>
+        <h2>Yalnızca Abonelere Özel</h2>
+        <p>Bu içerik premium abonelere özeldir. Devamını okumak için abone olun.</p>
+        <a href="subscribe.html" class="btn btn-gold">Abone Ol →</a>
+      </div>
+    </div>
+
+    <!-- GÖNDERI İÇERİĞİ -->
+    <div id="postContainer">
+      <div style="text-align:center;padding:60px 0;color:var(--text-muted)">Yükleniyor...</div>
+    </div>
+
+    <!-- YORUMLAR -->
+    <div class="comments-section" id="commentsSection" style="display:none">
+      <div class="section-title">💬 Yorumlar <span id="commentCount" style="font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text-muted)"></span></div>
+
+      <div class="comment-form" id="commentFormWrapper">
+        <div id="commentLoginPrompt" style="display:none;text-align:center;padding:12px">
+          <span style="color:var(--text-muted);font-size:0.875rem">Yorum yapmak için </span>
+          <button onclick="openModal('authModal')" style="background:none;border:none;color:var(--gold-light);cursor:pointer;font-family:inherit;font-size:0.875rem">giriş yapın</button>
+        </div>
+        <div id="commentInputWrapper">
+          <textarea id="newCommentText" placeholder="Yorumunuzu yazın..." rows="3"></textarea>
+          <div class="comment-form-footer">
+            <button class="btn btn-gold btn-sm" onclick="postComment()">Yorum Yap</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="commentsList"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    <div class="modal-title" id="authModalTitle">Giriş Yap</div>
+    <div id="authFormContent"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const postId = new URLSearchParams(location.search).get("id");
+
+async function loadPost() {
+  if (!postId) { location.href = "blog.html"; return; }
+
+  const snap = await db.collection("posts").doc(postId).get();
+  if (!snap.exists) { location.href = "blog.html"; return; }
+
+  const post = { id: snap.id, ...snap.data() };
+  document.title = `${post.title} — Berkay Yüklü`;
+
+  // Premium kontrol
+  if (post.premiumOnly) {
+    await new Promise(resolve => auth.onAuthStateChanged(resolve));
+    if (!currentUser) {
+      document.getElementById("premiumOverlay").style.display = "block";
+      document.getElementById("postContainer").style.display = "none";
+      document.getElementById("commentsSection").style.display = "none";
+      return;
+    }
+    const userDoc = await db.collection("users").doc(currentUser.uid).get();
+    const userData = userDoc.data();
+    if (!userData?.isSubscribed && currentUser.email !== ADMIN_EMAIL) {
+      document.getElementById("premiumOverlay").style.display = "block";
+      document.getElementById("postContainer").style.display = "none";
+      return;
+    }
+  }
+
+  // Görüntüleme artır
+  await incrementView(postId);
+
+  // Gönderiyi render et
+  const container = document.getElementById("postContainer");
+  container.innerHTML = `
+    <article>
+      <div class="post-header">
+        ${post.imageUrl ? `<img src="${post.imageUrl}" alt="${post.title}" class="post-cover">` : ""}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          ${post.category ? `<span class="post-tag">${post.category}</span>` : ""}
+          ${post.featured ? `<span class="post-tag" style="background:rgba(200,150,62,0.15);color:var(--gold)">⭐ Öne Çıkan</span>` : ""}
+          ${post.premiumOnly ? `<span class="post-tag premium">💎 Premium</span>` : ""}
+        </div>
+        <h1 class="post-title">${post.title}</h1>
+        <div class="post-meta-bar">
+          <span>📅 ${formatDate(post.createdAt)}</span>
+          <span>👁 <span id="viewCount">${post.views || 0}</span> görüntülenme</span>
+          <span>❤ <span id="likeCount">${post.likes || 0}</span> beğeni</span>
+        </div>
+      </div>
+
+      <div class="post-content" id="postContent">${post.content || ""}</div>
+
+      <!-- Beğeni -->
+      <div style="display:flex;align-items:center;gap:16px;margin-top:40px;padding:20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)">
+        <button class="like-btn" id="mainLikeBtn" onclick="toggleLike(event,'${postId}',this)" style="font-size:1rem;gap:8px;padding:10px 18px;border:1px solid var(--border);border-radius:8px">
+          <svg class="heart-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          Bu yazıyı beğen &nbsp;<span>${post.likes || 0}</span>
+        </button>
+        <span style="color:var(--text-muted);font-size:0.85rem">${post.views || 0} kişi okudu</span>
+      </div>
+    </article>`;
+
+  // Beğeni kontrolü
+  auth.onAuthStateChanged(user => {
+    if (user && (post.likedBy||[]).includes(user.uid)) {
+      document.getElementById("mainLikeBtn")?.classList.add("liked");
+    }
+    // Yorum formu
+    if (user) {
+      document.getElementById("commentLoginPrompt").style.display = "none";
+      document.getElementById("commentInputWrapper").style.display = "block";
+    } else {
+      document.getElementById("commentLoginPrompt").style.display = "block";
+      document.getElementById("commentInputWrapper").style.display = "none";
+    }
+    if (user && user.email === ADMIN_EMAIL) {
+      const al = document.getElementById("adminLink");
+      if (al) al.style.display = "block";
+    }
+  });
+
+  document.getElementById("commentsSection").style.display = "block";
+  await loadComments(postId);
+  // Yorum sayısı
+  const countSnap = await db.collection("posts").doc(postId).collection("comments").get();
+  document.getElementById("commentCount").textContent = `(${countSnap.size})`;
+}
+
+async function postComment() {
+  const text = document.getElementById("newCommentText").value;
+  if (!text.trim()) return;
+  await submitComment(postId, text);
+  document.getElementById("newCommentText").value = "";
+  const countSnap = await db.collection("posts").doc(postId).collection("comments").get();
+  document.getElementById("commentCount").textContent = `(${countSnap.size})`;
+}
+
+loadPost();
+</script>
+</body>
+</html>

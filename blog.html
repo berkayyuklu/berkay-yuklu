@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Berkay Yüklü</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR (aynı) -->
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/>
+      <text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+      <circle cx="28" cy="10" r="3" fill="url(#g1)" opacity="0.8"/>
+    </svg>
+    <span class="nav-logo-text">Berkay Yüklü</span>
+  </a>
+  <div class="nav-center">
+    <a href="index.html" class="nav-link">Ana Sayfa</a>
+    <a href="blog.html" class="nav-link active">Blog</a>
+    <a href="shortcuts.html" class="nav-link">Projeler</a>
+    <a href="premium.html" class="nav-link locked">Premium</a>
+    <a href="about.html" class="nav-link">Hakkında</a>
+    <a href="contact.html" class="nav-link">İletişim</a>
+    <a href="admin/index.html" class="nav-link" id="adminLink" style="display:none;color:var(--gold)">⚙ Admin</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-outline" id="loginBtn">Giriş Yap</button>
+    <button class="btn btn-gold" id="registerBtn">Kayıt Ol</button>
+    <a href="subscribe.html" class="btn btn-gold">⭐ Abone Ol</a>
+    <div class="user-menu" id="userMenu">
+      <button class="user-avatar-btn" id="userMenuBtn">
+        <img class="user-avatar" id="userAvatar" src="" alt="">
+        <span class="user-name" id="userDisplayName"></span>
+      </button>
+      <div class="user-dropdown">
+        <a href="profile.html">👤 Profilim</a>
+        <a href="premium.html">⭐ Premium</a>
+        <div class="divider"></div>
+        <button onclick="signOut()">↩ Çıkış Yap</button>
+      </div>
+    </div>
+  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">🏠 Ana Sayfa</a>
+  <a href="blog.html">📝 Blog</a>
+  <a href="shortcuts.html">🔗 Projeler</a>
+  <a href="premium.html">⭐ Premium</a>
+  <a href="subscribe.html">💎 Abone Ol</a>
+  <a href="admin/index.html" id="adminLinkMobile" style="display:none;color:var(--gold)">⚙ Admin</a>
+</div>
+
+<main>
+  <div class="container">
+    <div style="padding: 48px 0 32px">
+      <div class="section-title">📝 Tüm Yazılar</div>
+
+      <!-- Filtre -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap" id="filterBar">
+        <button class="btn btn-gold btn-sm" onclick="filterPosts(null,this)">Tümü</button>
+        <button class="btn btn-outline btn-sm" onclick="filterPosts('featured',this)">⭐ Öne Çıkanlar</button>
+      </div>
+
+      <div class="blog-grid" id="blogGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Yükleniyor...</div>
+      </div>
+
+      <div style="text-align:center;margin-top:32px">
+        <button class="btn btn-outline" id="loadMoreBtn" style="display:none" onclick="loadMore()">Daha Fazla Yükle</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2024 Berkay Yüklü</span>
+      <a href="index.html" style="color:var(--gold-light);text-decoration:none">← Ana Sayfa</a>
+    </div>
+  </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    <div class="modal-title" id="authModalTitle">Giriş Yap</div>
+    <div id="authFormContent"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="subscribeModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('subscribeModal')">✕</button>
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:2.5rem;margin-bottom:12px">🔒</div>
+      <h2 style="font-family:'Playfair Display',serif;margin-bottom:8px">Premium İçerik</h2>
+      <p style="color:var(--text-secondary);margin-bottom:24px">Bu içeriğe erişmek için abone olmanız gerekmektedir.</p>
+      <a href="subscribe.html" class="btn btn-gold" style="width:100%;justify-content:center">Planları Görüntüle</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+let lastDoc = null;
+let activeFilter = null;
+const PAGE_SIZE = 9;
+
+async function fetchPosts(filter = null, after = null) {
+  let query = db.collection("posts").where("published", "==", true).orderBy("createdAt", "desc");
+  if (filter === "featured") query = query.where("featured", "==", true);
+  if (after) query = query.startAfter(after);
+  query = query.limit(PAGE_SIZE);
+  return query.get();
+}
+
+async function filterPosts(filter, btn) {
+  activeFilter = filter;
+  lastDoc = null;
+  document.querySelectorAll("#filterBar button").forEach(b => b.className = "btn btn-outline btn-sm");
+  if (btn) btn.className = "btn btn-gold btn-sm";
+  const grid = document.getElementById("blogGrid");
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Yükleniyor...</div>`;
+  const snap = await fetchPosts(filter);
+  renderPosts(snap, grid, true);
+}
+
+function renderPosts(snap, grid, replace = false) {
+  if (replace) grid.innerHTML = "";
+  if (snap.empty && replace) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">Gönderi bulunamadı.</div>`;
+    document.getElementById("loadMoreBtn").style.display = "none";
+    return;
+  }
+  snap.docs.forEach(doc => {
+    grid.appendChild(createPostCard({ id: doc.id, ...doc.data() }));
+  });
+  lastDoc = snap.docs[snap.docs.length - 1];
+  document.getElementById("loadMoreBtn").style.display = snap.docs.length === PAGE_SIZE ? "inline-flex" : "none";
+}
+
+async function loadMore() {
+  if (!lastDoc) return;
+  const snap = await fetchPosts(activeFilter, lastDoc);
+  renderPosts(snap, document.getElementById("blogGrid"), false);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  filterPosts(null, document.querySelector("#filterBar button"));
+
+  auth.onAuthStateChanged(user => {
+    if (user && user.email === ADMIN_EMAIL) {
+      const al = document.getElementById("adminLink");
+      const alm = document.getElementById("adminLinkMobile");
+      if (al) al.style.display = "block";
+      if (alm) alm.style.display = "flex";
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Berkay Yüklü</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:600px){ .form-row { grid-template-columns: 1fr; } }
+    .badge { display:inline-block; padding:3px 8px; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .badge-green { background:rgba(39,174,96,0.15); color:#2ecc71; }
+    .badge-gold { background:rgba(200,150,62,0.15); color:var(--gold-light); }
+    .badge-red { background:rgba(231,76,60,0.15); color:#e74c3c; }
+    .img-preview { width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-top:8px; display:none; }
+  </style>
+</head>
+<body>
+
+<!-- Admin kontrolü yapılır, sadece admin görebilir -->
+<div id="adminGate" style="display:none;position:fixed;inset:0;background:var(--bg-primary);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="font-size:3rem">🔒</div>
+  <h2 style="font-family:'Playfair Display',serif">Erişim Reddedildi</h2>
+  <p style="color:var(--text-muted)">Bu sayfa yalnızca yöneticiye özeldir.</p>
+  <a href="../index.html" class="btn btn-gold">Ana Sayfaya Dön</a>
+</div>
+
+<nav class="navbar" id="navbar" style="display:none">
+  <a href="../index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/>
+      <text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+    </svg>
+    <span class="nav-logo-text">Admin Panel</span>
+  </a>
+  <div class="nav-right">
+    <a href="../index.html" class="btn btn-outline btn-sm">← Siteye Dön</a>
+    <button class="btn btn-outline btn-sm" onclick="signOut()">Çıkış</button>
+  </div>
+</nav>
+
+<div id="adminContent" style="display:none">
+  <div class="admin-layout" style="padding-top:64px">
+
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-title" style="margin-bottom:16px">Yönetim</div>
+
+      <button class="admin-nav-item active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+      <button class="admin-nav-item" onclick="switchTab('posts',this)">📝 Gönderiler</button>
+      <button class="admin-nav-item" onclick="switchTab('newPost',this)">✏️ Yeni Gönderi</button>
+      <button class="admin-nav-item" onclick="switchTab('shortcuts',this)">🔗 Kısayollar</button>
+      <button class="admin-nav-item" onclick="switchTab('plans',this)">💎 Abonelik Planları</button>
+      <button class="admin-nav-item" onclick="switchTab('users',this)">👥 Kullanıcılar</button>
+      <button class="admin-nav-item" onclick="switchTab('payments',this)">💳 Ödemeler</button>
+      <button class="admin-nav-item" onclick="switchTab('faq',this)">❓ SSS</button>
+      <button class="admin-nav-item" onclick="switchTab('settings',this)">⚙️ Ayarlar</button>
+    </aside>
+
+    <!-- ANA ALAN -->
+    <div class="admin-main">
+
+      <!-- DASHBOARD -->
+      <div class="tab-content active" id="tab-dashboard">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Dashboard</h2>
+        <div class="admin-stat-grid" id="statsGrid">
+          <div class="admin-stat"><div class="admin-stat-value" id="statPosts">-</div><div class="admin-stat-label">Gönderi</div></div>
+          <div class="admin-stat"><div class="admin-stat-value" id="statUsers">-</div><div class="admin-stat-label">Kullanıcı</div></div>
+          <div class="admin-stat"><div class="admin-stat-value" id="statSubs">-</div><div class="admin-stat-label">Abone</div></div>
+          <div class="admin-stat"><div class="admin-stat-value" id="statViews">-</div><div class="admin-stat-label">Toplam Görüntülenme</div></div>
+        </div>
+        <div class="admin-card">
+          <h3 style="margin-bottom:16px;font-size:1rem">Son Gönderiler</h3>
+          <div id="recentPosts"></div>
+        </div>
+      </div>
+
+      <!-- GÖNDERİLER -->
+      <div class="tab-content" id="tab-posts">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+          <h2 style="font-family:'Playfair Display',serif">Tüm Gönderiler</h2>
+          <button class="btn btn-gold btn-sm" onclick="switchTab('newPost',document.querySelector('[onclick*=newPost]'))">+ Yeni</button>
+        </div>
+        <div class="admin-card" style="overflow-x:auto">
+          <table class="admin-table" id="postsTable">
+            <thead><tr><th>Başlık</th><th>Durum</th><th>Öne Çıkan</th><th>Premium</th><th>Görüntü</th><th>İşlem</th></tr></thead>
+            <tbody id="postsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- YENİ GÖNDERİ -->
+      <div class="tab-content" id="tab-newPost">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px" id="postFormTitle">Yeni Gönderi</h2>
+        <input type="hidden" id="editPostId">
+
+        <div class="admin-card">
+          <div class="form-group">
+            <label class="form-label">Başlık *</label>
+            <input type="text" id="postTitle" class="form-input" placeholder="Gönderi başlığı">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Kısa Özet</label>
+            <textarea id="postExcerpt" class="form-input" rows="2" placeholder="Gönderi özeti (isteğe bağlı)"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">İçerik * (HTML destekler)</label>
+            <textarea id="postContent" class="form-input" rows="12" placeholder="Gönderi içeriğini buraya yazın...&#10;&#10;HTML etiketleri kullanabilirsiniz: &lt;h2&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;blockquote&gt;, &lt;a href=&quot;...&quot;&gt;, &lt;img src=&quot;...&quot;&gt;"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Kapak Görseli URL</label>
+              <input type="url" id="postImage" class="form-input" placeholder="https://..." oninput="previewImg(this)">
+              <img id="imgPreview" class="img-preview" alt="Önizleme">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kategori</label>
+              <input type="text" id="postCategory" class="form-input" placeholder="Teknoloji, Blog, Yazılım...">
+            </div>
+          </div>
+
+          <div style="margin-top:8px">
+            <label class="form-label">Yayınlama Seçenekleri</label>
+            <div class="publish-options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="publishAll" checked>
+                Tüm Gönderiler'de yayınla
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="publishFeatured">
+                Öne Çıkanlar'da yayınla
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="publishPremium">
+                💎 Yalnızca premium abonelere
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap">
+            <button class="btn btn-gold" onclick="savePost()">💾 Kaydet & Yayınla</button>
+            <button class="btn btn-outline" onclick="savePost(false)">📋 Taslak Olarak Kaydet</button>
+            <button class="btn btn-outline" onclick="clearPostForm()" style="margin-left:auto">✕ Temizle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KISAYOLLAR -->
+      <div class="tab-content" id="tab-shortcuts">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Kısayollar / Projeler</h2>
+
+        <div class="admin-card" style="margin-bottom:20px">
+          <h3 style="margin-bottom:16px;font-size:1rem">Yeni Kısayol Ekle</h3>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Adı</label><input type="text" id="scName" class="form-input" placeholder="Proje Adı"></div>
+            <div class="form-group"><label class="form-label">URL</label><input type="url" id="scUrl" class="form-input" placeholder="https://..."></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Açıklama</label><input type="text" id="scDesc" class="form-input" placeholder="Kısa açıklama"></div>
+            <div class="form-group"><label class="form-label">Emoji/İkon</label><input type="text" id="scIcon" class="form-input" placeholder="🔗" maxlength="4"></div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="addShortcut()">+ Ekle</button>
+        </div>
+
+        <div class="admin-card" style="overflow-x:auto">
+          <table class="admin-table">
+            <thead><tr><th>İkon</th><th>Ad</th><th>URL</th><th>İşlem</th></tr></thead>
+            <tbody id="shortcutsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ABONELİK PLANLARI -->
+      <div class="tab-content" id="tab-plans">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Abonelik Planları</h2>
+
+        <div class="admin-card" style="margin-bottom:20px">
+          <h3 style="margin-bottom:16px;font-size:1rem">Yeni Plan Ekle</h3>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Plan Adı</label><input type="text" id="planName" class="form-input" placeholder="Başlangıç"></div>
+            <div class="form-group"><label class="form-label">Fiyat (₺)</label><input type="number" id="planPrice" class="form-input" placeholder="49"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Dönem</label>
+              <select id="planPeriod" class="form-input">
+                <option value="ay">Aylık</option>
+                <option value="yıl">Yıllık</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Popüler mi?</label>
+              <select id="planFeatured" class="form-input">
+                <option value="false">Hayır</option>
+                <option value="true">Evet</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Açıklama</label><input type="text" id="planDesc" class="form-input" placeholder="Plan açıklaması"></div>
+          <div class="form-group"><label class="form-label">Özellikler (her satıra bir tane)</label>
+            <textarea id="planFeatures" class="form-input" rows="4" placeholder="Premium içeriklere erişim&#10;Yorum önceliği&#10;Özel rozet"></textarea>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="addPlan()">+ Ekle</button>
+        </div>
+
+        <div id="plansAdminList"></div>
+      </div>
+
+      <!-- KULLANICILAR -->
+      <div class="tab-content" id="tab-users">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Kullanıcılar</h2>
+        <div class="admin-card" style="overflow-x:auto">
+          <table class="admin-table">
+            <thead><tr><th>Kullanıcı</th><th>E-posta</th><th>Abonelik</th><th>Kayıt</th><th>İşlem</th></tr></thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ÖDEMELER -->
+      <div class="tab-content" id="tab-payments">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Ödemeler</h2>
+
+        <div class="admin-card" style="margin-bottom:20px;border-color:var(--border-gold)">
+          <h3 style="font-size:1rem;margin-bottom:12px;color:var(--gold-light)">⚙️ Iyzico Ayarları</h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+            Iyzico API anahtarlarını buradan girebilirsiniz. Ücretsiz hesap için <a href="https://iyzico.com" target="_blank" style="color:var(--gold-light)">iyzico.com</a>'a gidin.
+          </p>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">API Key</label><input type="text" id="iyzicoKey" class="form-input" placeholder="sandbox-..."></div>
+            <div class="form-group"><label class="form-label">Secret Key</label><input type="password" id="iyzicoSecret" class="form-input" placeholder="sandbox-..."></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ortam</label>
+            <select id="iyzicoEnv" class="form-input">
+              <option value="sandbox">Test (Sandbox)</option>
+              <option value="production">Canlı (Production)</option>
+            </select>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="savePaymentSettings()">Kaydet</button>
+        </div>
+
+        <div class="admin-card" style="overflow-x:auto">
+          <h3 style="font-size:1rem;margin-bottom:16px">Ödeme Geçmişi</h3>
+          <table class="admin-table">
+            <thead><tr><th>Kullanıcı</th><th>Plan</th><th>Tutar</th><th>Tarih</th><th>Durum</th></tr></thead>
+            <tbody id="paymentsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SSS -->
+      <div class="tab-content" id="tab-faq">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Sık Sorulan Sorular</h2>
+        <div class="admin-card" style="margin-bottom:20px">
+          <div class="form-group"><label class="form-label">Soru</label><input type="text" id="faqQ" class="form-input" placeholder="Soru..."></div>
+          <div class="form-group"><label class="form-label">Cevap</label><textarea id="faqA" class="form-input" rows="3" placeholder="Cevap..."></textarea></div>
+          <button class="btn btn-gold btn-sm" onclick="addFaq()">+ Ekle</button>
+        </div>
+        <div id="faqAdminList"></div>
+      </div>
+
+      <!-- AYARLAR -->
+      <div class="tab-content" id="tab-settings">
+        <h2 style="font-family:'Playfair Display',serif;margin-bottom:24px">Site Ayarları</h2>
+        <div class="admin-card">
+          <div class="form-group"><label class="form-label">Site Başlığı</label><input type="text" id="settingTitle" class="form-input" placeholder="Berkay Yüklü"></div>
+          <div class="form-group"><label class="form-label">Site Açıklaması</label><textarea id="settingDesc" class="form-input" rows="2" placeholder="Site açıklaması"></textarea></div>
+          <div class="form-group"><label class="form-label">İletişim E-postası</label><input type="email" id="settingEmail" class="form-input"></div>
+          <div class="form-group"><label class="form-label">GitHub URL</label><input type="url" id="settingGithub" class="form-input" placeholder="https://github.com/..."></div>
+          <div class="form-group"><label class="form-label">Twitter/X URL</label><input type="url" id="settingTwitter" class="form-input" placeholder="https://twitter.com/..."></div>
+          <button class="btn btn-gold" onclick="saveSettings()">Kaydet</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+<script src="../js/app.js"></script>
+<script>
+// Admin kontrolü
+auth.onAuthStateChanged(async user => {
+  if (!user || user.email !== ADMIN_EMAIL) {
+    document.getElementById("adminGate").style.display = "flex";
+    return;
+  }
+  document.getElementById("adminGate").style.display = "none";
+  document.getElementById("adminContent").style.display = "block";
+  document.getElementById("navbar").style.display = "flex";
+  loadDashboard();
+  loadPostsTable();
+  loadShortcutsTable();
+  loadPlansAdmin();
+  loadUsersTable();
+  loadPaymentsTable();
+  loadFaqAdmin();
+  loadSettings();
+});
+
+// Tab geçişi
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".admin-nav-item").forEach(b => b.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  if (btn) btn.classList.add("active");
+}
+
+// === DASHBOARD ===
+async function loadDashboard() {
+  const [posts, users, payments] = await Promise.all([
+    db.collection("posts").where("published","==",true).get(),
+    db.collection("users").get(),
+    db.collection("payments").get()
+  ]);
+  const subs = users.docs.filter(d => d.data().isSubscribed).length;
+  const views = posts.docs.reduce((a,d) => a + (d.data().views||0), 0);
+
+  document.getElementById("statPosts").textContent = posts.size;
+  document.getElementById("statUsers").textContent = users.size;
+  document.getElementById("statSubs").textContent = subs;
+  document.getElementById("statViews").textContent = views;
+
+  // Son gönderiler
+  const recent = posts.docs.slice(0,5);
+  const tbody = document.getElementById("recentPosts");
+  tbody.innerHTML = recent.map(d => {
+    const p = d.data();
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.875rem">
+      <span style="color:var(--text-primary)">${p.title}</span>
+      <span style="color:var(--text-muted)">👁 ${p.views||0}</span>
+    </div>`;
+  }).join("") || "<p style='color:var(--text-muted)'>Gönderi yok</p>";
+}
+
+// === GÖNDERİLER ===
+async function loadPostsTable() {
+  const snap = await db.collection("posts").orderBy("createdAt","desc").get();
+  const tbody = document.getElementById("postsTableBody");
+  tbody.innerHTML = snap.docs.map(d => {
+    const p = d.data();
+    return `<tr>
+      <td style="color:var(--text-primary);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</td>
+      <td><span class="badge ${p.published?'badge-green':'badge-red'}">${p.published?'Yayında':'Taslak'}</span></td>
+      <td><span class="badge ${p.featured?'badge-gold':''}"> ${p.featured?'⭐ Evet':'–'}</span></td>
+      <td>${p.premiumOnly?'<span class="badge badge-gold">💎</span>':'–'}</td>
+      <td>👁 ${p.views||0}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="editPost('${d.id}')">Düzenle</button>
+        <button class="btn btn-sm" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid rgba(231,76,60,0.3)" onclick="deletePost('${d.id}')">Sil</button>
+      </td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Gönderi yok</td></tr>`;
+}
+
+async function savePost(publish = true) {
+  const id = document.getElementById("editPostId").value;
+  const title = document.getElementById("postTitle").value.trim();
+  const content = document.getElementById("postContent").value.trim();
+  if (!title || !content) { showToast("Başlık ve içerik zorunlu!", "error"); return; }
+
+  const data = {
+    title,
+    content,
+    excerpt: document.getElementById("postExcerpt").value.trim(),
+    imageUrl: document.getElementById("postImage").value.trim(),
+    category: document.getElementById("postCategory").value.trim(),
+    published: publish && document.getElementById("publishAll").checked,
+    featured: document.getElementById("publishFeatured").checked,
+    premiumOnly: document.getElementById("publishPremium").checked,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  if (id) {
+    await db.collection("posts").doc(id).update(data);
+    showToast("Gönderi güncellendi!", "success");
+  } else {
+    await db.collection("posts").add({ ...data, views: 0, likes: 0, likedBy: [], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast("Gönderi yayınlandı!", "success");
+  }
+
+  clearPostForm();
+  loadPostsTable();
+  loadDashboard();
+  switchTab("posts", document.querySelector('[onclick*="posts"]'));
+}
+
+async function editPost(id) {
+  const snap = await db.collection("posts").doc(id).get();
+  const p = snap.data();
+  document.getElementById("editPostId").value = id;
+  document.getElementById("postTitle").value = p.title || "";
+  document.getElementById("postContent").value = p.content || "";
+  document.getElementById("postExcerpt").value = p.excerpt || "";
+  document.getElementById("postImage").value = p.imageUrl || "";
+  document.getElementById("postCategory").value = p.category || "";
+  document.getElementById("publishAll").checked = p.published !== false;
+  document.getElementById("publishFeatured").checked = !!p.featured;
+  document.getElementById("publishPremium").checked = !!p.premiumOnly;
+  document.getElementById("postFormTitle").textContent = "Gönderiyi Düzenle";
+  if (p.imageUrl) { const img = document.getElementById("imgPreview"); img.src = p.imageUrl; img.style.display = "block"; }
+  switchTab("newPost", document.querySelector('[onclick*="newPost"]'));
+}
+
+async function deletePost(id) {
+  if (!confirm("Bu gönderiyi silmek istediğinizden emin misiniz?")) return;
+  await db.collection("posts").doc(id).delete();
+  showToast("Gönderi silindi.", "info");
+  loadPostsTable();
+  loadDashboard();
+}
+
+function clearPostForm() {
+  document.getElementById("editPostId").value = "";
+  document.getElementById("postTitle").value = "";
+  document.getElementById("postContent").value = "";
+  document.getElementById("postExcerpt").value = "";
+  document.getElementById("postImage").value = "";
+  document.getElementById("postCategory").value = "";
+  document.getElementById("publishAll").checked = true;
+  document.getElementById("publishFeatured").checked = false;
+  document.getElementById("publishPremium").checked = false;
+  document.getElementById("postFormTitle").textContent = "Yeni Gönderi";
+  document.getElementById("imgPreview").style.display = "none";
+}
+
+function previewImg(input) {
+  const img = document.getElementById("imgPreview");
+  if (input.value) { img.src = input.value; img.style.display = "block"; }
+  else { img.style.display = "none"; }
+}
+
+// === KISAYOLLAR ===
+async function loadShortcutsTable() {
+  const snap = await db.collection("shortcuts").orderBy("order","asc").get();
+  const tbody = document.getElementById("shortcutsTable");
+  tbody.innerHTML = snap.docs.map((d, i) => {
+    const s = d.data();
+    return `<tr>
+      <td style="font-size:1.5rem">${s.icon||"🔗"}</td>
+      <td style="color:var(--text-primary)">${s.name}</td>
+      <td><a href="${s.url}" target="_blank" style="color:var(--gold-light);text-decoration:none;font-size:0.8rem">${s.url}</a></td>
+      <td><button class="btn btn-sm" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid rgba(231,76,60,0.3)" onclick="deleteShortcut('${d.id}')">Sil</button></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Kısayol yok</td></tr>`;
+}
+
+async function addShortcut() {
+  const name = document.getElementById("scName").value.trim();
+  const url = document.getElementById("scUrl").value.trim();
+  if (!name || !url) { showToast("Ad ve URL zorunlu!", "error"); return; }
+  const snap = await db.collection("shortcuts").get();
+  await db.collection("shortcuts").add({
+    name, url,
+    description: document.getElementById("scDesc").value.trim(),
+    icon: document.getElementById("scIcon").value.trim() || "🔗",
+    order: snap.size
+  });
+  document.getElementById("scName").value = "";
+  document.getElementById("scUrl").value = "";
+  document.getElementById("scDesc").value = "";
+  document.getElementById("scIcon").value = "";
+  showToast("Kısayol eklendi!", "success");
+  loadShortcutsTable();
+}
+
+async function deleteShortcut(id) {
+  await db.collection("shortcuts").doc(id).delete();
+  showToast("Silindi.", "info");
+  loadShortcutsTable();
+}
+
+// === PLANLAR ===
+async function loadPlansAdmin() {
+  const snap = await db.collection("plans").orderBy("order","asc").get();
+  const container = document.getElementById("plansAdminList");
+  container.innerHTML = snap.docs.map(d => {
+    const p = d.data();
+    return `<div class="admin-card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <strong>${p.name}</strong>
+        <span style="color:var(--gold-light);margin-left:12px">${p.price}₺/${p.period}</span>
+        ${p.featured ? `<span class="badge badge-gold" style="margin-left:8px">Popüler</span>` : ""}
+      </div>
+      <button class="btn btn-sm" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid rgba(231,76,60,0.3)" onclick="deletePlan('${d.id}')">Sil</button>
+    </div>`;
+  }).join("") || `<div style="color:var(--text-muted);padding:16px">Plan yok. Yukarıdan ekleyin.</div>`;
+}
+
+async function addPlan() {
+  const name = document.getElementById("planName").value.trim();
+  const price = document.getElementById("planPrice").value;
+  if (!name || !price) { showToast("Ad ve fiyat zorunlu!", "error"); return; }
+  const snap = await db.collection("plans").get();
+  const featuresText = document.getElementById("planFeatures").value;
+  const features = featuresText.split("\n").map(f => f.trim()).filter(Boolean);
+  await db.collection("plans").add({
+    name, price: Number(price),
+    period: document.getElementById("planPeriod").value,
+    description: document.getElementById("planDesc").value.trim(),
+    featured: document.getElementById("planFeatured").value === "true",
+    features,
+    order: snap.size
+  });
+  showToast("Plan eklendi!", "success");
+  ["planName","planPrice","planDesc","planFeatures"].forEach(id => document.getElementById(id).value = "");
+  loadPlansAdmin();
+}
+
+async function deletePlan(id) {
+  await db.collection("plans").doc(id).delete();
+  showToast("Plan silindi.", "info");
+  loadPlansAdmin();
+}
+
+// === KULLANICILAR ===
+async function loadUsersTable() {
+  const snap = await db.collection("users").orderBy("createdAt","desc").get();
+  const tbody = document.getElementById("usersTable");
+  tbody.innerHTML = snap.docs.map(d => {
+    const u = d.data();
+    return `<tr>
+      <td style="color:var(--text-primary)">${u.displayName||"–"}</td>
+      <td style="color:var(--text-secondary)">${u.email}</td>
+      <td>${u.isSubscribed ? `<span class="badge badge-gold">💎 Abone</span>` : `<span class="badge">–</span>`}</td>
+      <td style="color:var(--text-muted);font-size:0.8rem">${u.createdAt ? formatDate(u.createdAt) : "–"}</td>
+      <td>
+        ${!u.isSubscribed
+          ? `<button class="btn btn-sm btn-gold" onclick="grantSub('${d.id}')">Abone Yap</button>`
+          : `<button class="btn btn-sm btn-outline" onclick="revokeSub('${d.id}')">Abone İptal</button>`}
+      </td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Kullanıcı yok</td></tr>`;
+}
+
+async function grantSub(uid) {
+  const expiry = new Date(); expiry.setMonth(expiry.getMonth() + 1);
+  await db.collection("users").doc(uid).update({ isSubscribed: true, subscriptionExpiry: expiry });
+  showToast("Abonelik verildi!", "success");
+  loadUsersTable();
+}
+
+async function revokeSub(uid) {
+  await db.collection("users").doc(uid).update({ isSubscribed: false, subscriptionExpiry: null });
+  showToast("Abonelik iptal edildi.", "info");
+  loadUsersTable();
+}
+
+// === ÖDEMELER ===
+async function loadPaymentsTable() {
+  const snap = await db.collection("payments").orderBy("createdAt","desc").limit(50).get();
+  const tbody = document.getElementById("paymentsTable");
+  tbody.innerHTML = snap.docs.map(d => {
+    const p = d.data();
+    return `<tr>
+      <td style="color:var(--text-secondary)">${p.userEmail||"–"}</td>
+      <td>${p.planName||"–"}</td>
+      <td style="color:var(--gold-light)">${p.amount||"–"}₺</td>
+      <td style="color:var(--text-muted);font-size:0.8rem">${p.createdAt ? formatDate(p.createdAt) : "–"}</td>
+      <td><span class="badge ${p.status==='success'?'badge-green':'badge-red'}">${p.status||"–"}</span></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Ödeme yok</td></tr>`;
+}
+
+async function savePaymentSettings() {
+  const key = document.getElementById("iyzicoKey").value.trim();
+  const secret = document.getElementById("iyzicoSecret").value.trim();
+  const env = document.getElementById("iyzicoEnv").value;
+  if (!key || !secret) { showToast("API key ve secret zorunlu!", "error"); return; }
+  await db.collection("settings").doc("payment").set({ iyzicoKey: key, iyzicoSecret: secret, env });
+  showToast("Ödeme ayarları kaydedildi!", "success");
+}
+
+// === SSS ===
+async function loadFaqAdmin() {
+  const snap = await db.collection("faq").orderBy("order","asc").get();
+  const container = document.getElementById("faqAdminList");
+  container.innerHTML = snap.docs.map(d => {
+    const f = d.data();
+    return `<div class="admin-card" style="margin-bottom:10px">
+      <strong style="font-size:0.9rem">${f.question}</strong>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-top:6px">${f.answer}</p>
+      <button class="btn btn-sm" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid rgba(231,76,60,0.3);margin-top:8px" onclick="deleteFaq('${d.id}')">Sil</button>
+    </div>`;
+  }).join("") || `<div style="color:var(--text-muted)">SSS yok.</div>`;
+}
+
+async function addFaq() {
+  const q = document.getElementById("faqQ").value.trim();
+  const a = document.getElementById("faqA").value.trim();
+  if (!q || !a) { showToast("Soru ve cevap zorunlu!", "error"); return; }
+  const snap = await db.collection("faq").get();
+  await db.collection("faq").add({ question: q, answer: a, order: snap.size });
+  showToast("SSS eklendi!", "success");
+  document.getElementById("faqQ").value = "";
+  document.getElementById("faqA").value = "";
+  loadFaqAdmin();
+}
+
+async function deleteFaq(id) {
+  await db.collection("faq").doc(id).delete();
+  showToast("Silindi.", "info");
+  loadFaqAdmin();
+}
+
+// === AYARLAR ===
+async function loadSettings() {
+  try {
+    const snap = await db.collection("settings").doc("site").get();
+    if (snap.exists) {
+      const s = snap.data();
+      document.getElementById("settingTitle").value = s.title || "Berkay Yüklü";
+      document.getElementById("settingDesc").value = s.description || "";
+      document.getElementById("settingEmail").value = s.email || "";
+      document.getElementById("settingGithub").value = s.github || "";
+      document.getElementById("settingTwitter").value = s.twitter || "";
+    }
+    const paySnap = await db.collection("settings").doc("payment").get();
+    if (paySnap.exists) {
+      const p = paySnap.data();
+      document.getElementById("iyzicoKey").value = p.iyzicoKey || "";
+      document.getElementById("iyzicoSecret").value = p.iyzicoSecret || "";
+      document.getElementById("iyzicoEnv").value = p.env || "sandbox";
+    }
+  } catch(e) {}
+}
+
+async function saveSettings() {
+  await db.collection("settings").doc("site").set({
+    title: document.getElementById("settingTitle").value,
+    description: document.getElementById("settingDesc").value,
+    email: document.getElementById("settingEmail").value,
+    github: document.getElementById("settingGithub").value,
+    twitter: document.getElementById("settingTwitter").value,
+  });
+  showToast("Ayarlar kaydedildi!", "success");
+}
+</script>
+</body>
+</html>

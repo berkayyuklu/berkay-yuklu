@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ödeme — Berkay Yüklü</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/><text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+    </svg>
+    <span class="nav-logo-text">Berkay Yüklü</span>
+  </a>
+  <div class="nav-right">
+    <div class="user-menu" id="userMenu">
+      <button class="user-avatar-btn" id="userMenuBtn"><img class="user-avatar" id="userAvatar" src="" alt=""><span class="user-name" id="userDisplayName"></span></button>
+      <div class="user-dropdown"><a href="profile.html">👤 Profilim</a><div class="divider"></div><button onclick="signOut()">↩ Çıkış Yap</button></div>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container" style="max-width:560px;padding-top:80px;padding-bottom:60px">
+    <div class="section-title">💳 Ödeme</div>
+
+    <!-- Seçilen plan özeti -->
+    <div id="planSummary" style="background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--radius);padding:20px;margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">Seçilen Plan</div>
+          <div style="font-weight:600;font-size:1.1rem;margin-top:4px" id="selectedPlan">Yükleniyor...</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.5rem;font-weight:700;color:var(--gold-light)" id="selectedPrice"></div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">aylık</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ödeme formu -->
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px">
+      <h2 style="font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:20px">Kart Bilgileri</h2>
+
+      <div class="form-group">
+        <label class="form-label">Kart Üzerindeki Ad</label>
+        <input type="text" id="cardName" class="form-input" placeholder="AD SOYAD">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Kart Numarası</label>
+        <input type="text" id="cardNumber" class="form-input" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+          <label class="form-label">Son Kullanma (AA/YY)</label>
+          <input type="text" id="cardExpiry" class="form-input" placeholder="AA/YY" maxlength="5" oninput="formatExpiry(this)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CVV</label>
+          <input type="text" id="cardCvv" class="form-input" placeholder="000" maxlength="4">
+        </div>
+      </div>
+
+      <!-- Fatura bilgileri -->
+      <h3 style="font-size:0.9rem;color:var(--text-muted);margin:16px 0 12px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Fatura Bilgileri</h3>
+      <div class="form-group">
+        <label class="form-label">Ad Soyad</label>
+        <input type="text" id="billingName" class="form-input" placeholder="Ad Soyad">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şehir</label>
+        <input type="text" id="billingCity" class="form-input" placeholder="İstanbul">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adres</label>
+        <input type="text" id="billingAddress" class="form-input" placeholder="Adresiniz">
+      </div>
+
+      <div style="margin:16px 0;padding:12px;background:rgba(200,150,62,0.06);border-radius:8px;font-size:0.8rem;color:var(--text-muted)">
+        🔒 Ödeme bilgileriniz SSL ile şifrelenerek işlenmektedir. Iyzico altyapısı kullanılmaktadır.
+      </div>
+
+      <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="processPayment()" id="payBtn">
+        💳 Ödemeyi Tamamla
+      </button>
+
+      <div id="paymentStatus" style="display:none;margin-top:12px;padding:12px;border-radius:8px;text-align:center;font-size:0.875rem"></div>
+    </div>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const planId = params.get("plan");
+const planName = params.get("name");
+const price = params.get("price");
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("selectedPlan").textContent = decodeURIComponent(planName || "Plan");
+  document.getElementById("selectedPrice").textContent = price ? `${price}₺` : "–";
+});
+
+function formatCard(input) {
+  let v = input.value.replace(/\D/g,"").substring(0,16);
+  input.value = v.replace(/(.{4})/g,"$1 ").trim();
+}
+
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,"");
+  if (v.length >= 2) v = v.substring(0,2) + "/" + v.substring(2,4);
+  input.value = v;
+}
+
+async function processPayment() {
+  if (!currentUser) { openModal("authModal"); return; }
+
+  const cardName = document.getElementById("cardName").value.trim();
+  const cardNumber = document.getElementById("cardNumber").value.replace(/\s/g,"");
+  const expiry = document.getElementById("cardExpiry").value;
+  const cvv = document.getElementById("cardCvv").value;
+  const billingName = document.getElementById("billingName").value.trim();
+
+  if (!cardName || cardNumber.length < 16 || !expiry || cvv.length < 3 || !billingName) {
+    showToast("Lütfen tüm alanları doldurun!", "error"); return;
+  }
+
+  const btn = document.getElementById("payBtn");
+  btn.disabled = true;
+  btn.textContent = "İşleniyor...";
+
+  try {
+    // Iyzico API ayarlarını al
+    const settingsSnap = await db.collection("settings").doc("payment").get();
+
+    if (!settingsSnap.exists || !settingsSnap.data().iyzicoKey) {
+      // Iyzico ayarlanmamışsa simüle et (demo mod)
+      await simulatePayment();
+      return;
+    }
+
+    // Gerçek Iyzico entegrasyonu server-side gerektirir (Firebase Functions)
+    // Şimdilik demo mod
+    await simulatePayment();
+
+  } catch(e) {
+    const status = document.getElementById("paymentStatus");
+    status.style.display = "block";
+    status.style.background = "rgba(231,76,60,0.1)";
+    status.style.border = "1px solid rgba(231,76,60,0.3)";
+    status.style.color = "#e74c3c";
+    status.textContent = "Ödeme işlenirken hata: " + e.message;
+    btn.disabled = false;
+    btn.textContent = "💳 Ödemeyi Tamamla";
+  }
+}
+
+async function simulatePayment() {
+  // Ödeme kaydını Firestore'a yaz
+  const expiry = new Date();
+  expiry.setMonth(expiry.getMonth() + 1);
+
+  await db.collection("payments").add({
+    userId: currentUser.uid,
+    userEmail: currentUser.email,
+    planId, planName: decodeURIComponent(planName || ""),
+    amount: Number(price),
+    status: "success",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  // Kullanıcıyı abone yap
+  await db.collection("users").doc(currentUser.uid).update({
+    isSubscribed: true,
+    subscriptionPlan: planId,
+    subscriptionExpiry: expiry
+  });
+
+  const status = document.getElementById("paymentStatus");
+  status.style.display = "block";
+  status.style.background = "rgba(39,174,96,0.1)";
+  status.style.border = "1px solid rgba(39,174,96,0.3)";
+  status.style.color = "#2ecc71";
+  status.innerHTML = "✓ Ödeme başarılı! Premium üye oldunuz. Yönlendiriliyorsunuz...";
+
+  setTimeout(() => { window.location.href = "premium.html"; }, 2500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profilim — Berkay Yüklü</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/>
+      <text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+      <circle cx="28" cy="10" r="3" fill="url(#g1)" opacity="0.8"/>
+    </svg>
+    <span class="nav-logo-text">Berkay Yüklü</span>
+  </a>
+  <div class="nav-center">
+    <a href="index.html" class="nav-link">Ana Sayfa</a>
+    <a href="blog.html" class="nav-link">Blog</a>
+  </div>
+  <div class="nav-right">
+    <div class="user-menu" id="userMenu">
+      <button class="user-avatar-btn" id="userMenuBtn">
+        <img class="user-avatar" id="userAvatar" src="" alt="">
+        <span class="user-name" id="userDisplayName"></span>
+      </button>
+      <div class="user-dropdown">
+        <a href="profile.html" style="color:var(--gold-light)">👤 Profilim</a>
+        <div class="divider"></div>
+        <button onclick="signOut()">↩ Çıkış Yap</button>
+      </div>
+    </div>
+    <button class="btn btn-outline" id="loginBtn">Giriş Yap</button>
+    <button class="btn btn-gold" id="registerBtn">Kayıt Ol</button>
+  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+
+<main>
+  <div class="container" style="max-width:680px;padding-top:80px;padding-bottom:60px">
+
+    <div id="loginRequired" style="display:none;text-align:center;padding:60px 0">
+      <div style="font-size:3rem;margin-bottom:16px">👤</div>
+      <h2 style="font-family:'Playfair Display',serif;margin-bottom:12px">Giriş Yapmanız Gerekiyor</h2>
+      <button onclick="openModal('authModal')" class="btn btn-gold">Giriş Yap</button>
+    </div>
+
+    <div id="profileContent" style="display:none">
+      <div class="section-title">👤 Profilim</div>
+
+      <!-- Profil fotoğrafı -->
+      <div style="display:flex;align-items:center;gap:24px;margin-bottom:32px;padding:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)">
+        <div style="position:relative">
+          <img id="profilePhoto" src="" alt="Profil" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border-gold)">
+          <label for="photoInput" style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.7rem">✏</label>
+          <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(this)">
+        </div>
+        <div>
+          <div style="font-weight:600;font-size:1.1rem" id="profileName">Yükleniyor...</div>
+          <div style="color:var(--text-muted);font-size:0.875rem" id="profileEmail"></div>
+          <div id="subBadge" style="display:none;margin-top:6px">
+            <span style="background:rgba(200,150,62,0.15);border:1px solid var(--border-gold);color:var(--gold-light);padding:3px 10px;border-radius:20px;font-size:0.75rem">💎 Premium Üye</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profil düzenleme formu -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px">
+        <h3 style="font-family:'Playfair Display',serif;margin-bottom:20px;font-size:1.1rem">Bilgilerimi Düzenle</h3>
+
+        <div class="form-group">
+          <label class="form-label">Görünen Ad</label>
+          <input type="text" id="editName" class="form-input" placeholder="Adınız Soyadınız">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kısa Bio</label>
+          <textarea id="editBio" class="form-input" rows="3" placeholder="Kendiniz hakkında kısa bir bilgi..." style="resize:none"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" id="editWebsite" class="form-input" placeholder="https://...">
+        </div>
+
+        <button class="btn btn-gold" onclick="saveProfile()" style="margin-top:8px">Kaydet</button>
+      </div>
+
+      <!-- Şifre değiştir -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
+        <h3 style="font-family:'Playfair Display',serif;margin-bottom:20px;font-size:1.1rem">Şifre Değiştir</h3>
+        <div class="form-group">
+          <label class="form-label">Yeni Şifre</label>
+          <input type="password" id="newPassword" class="form-input" placeholder="En az 6 karakter">
+        </div>
+        <button class="btn btn-outline" onclick="changePassword()">Şifreyi Güncelle</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    <div class="modal-title" id="authModalTitle">Giriş Yap</div>
+    <div id="authFormContent"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    document.getElementById("loginRequired").style.display = "block";
+    return;
+  }
+
+  document.getElementById("profileContent").style.display = "block";
+
+  const userDoc = await db.collection("users").doc(user.uid).get();
+  const userData = userDoc.data() || {};
+
+  document.getElementById("profilePhoto").src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||"U")}&background=c8963e&color=fff`;
+  document.getElementById("profileName").textContent = user.displayName || "İsimsiz";
+  document.getElementById("profileEmail").textContent = user.email;
+  document.getElementById("editName").value = user.displayName || "";
+  document.getElementById("editBio").value = userData.bio || "";
+  document.getElementById("editWebsite").value = userData.website || "";
+
+  if (userData.isSubscribed) {
+    document.getElementById("subBadge").style.display = "block";
+  }
+});
+
+async function saveProfile() {
+  if (!currentUser) return;
+  const name = document.getElementById("editName").value.trim();
+  const bio = document.getElementById("editBio").value.trim();
+  const website = document.getElementById("editWebsite").value.trim();
+
+  try {
+    await currentUser.updateProfile({ displayName: name || currentUser.displayName });
+    await db.collection("users").doc(currentUser.uid).update({ displayName: name, bio, website });
+    document.getElementById("profileName").textContent = name || currentUser.displayName;
+    showToast("Profil güncellendi!", "success");
+  } catch(e) {
+    showToast("Hata: " + e.message, "error");
+  }
+}
+
+async function changePassword() {
+  if (!currentUser) return;
+  const pwd = document.getElementById("newPassword").value;
+  if (pwd.length < 6) { showToast("Şifre en az 6 karakter olmalı", "error"); return; }
+  try {
+    await currentUser.updatePassword(pwd);
+    showToast("Şifre güncellendi!", "success");
+    document.getElementById("newPassword").value = "";
+  } catch(e) {
+    showToast("Hata: " + e.message, "error");
+  }
+}
+
+async function uploadPhoto(input) {
+  if (!input.files[0] || !currentUser) return;
+  showToast("Fotoğraf yükleniyor...", "info");
+  const file = input.files[0];
+  const ref = storage.ref(`avatars/${currentUser.uid}`);
+  await ref.put(file);
+  const url = await ref.getDownloadURL();
+  await currentUser.updateProfile({ photoURL: url });
+  await db.collection("users").doc(currentUser.uid).update({ photoURL: url });
+  document.getElementById("profilePhoto").src = url;
+  document.getElementById("userAvatar").src = url;
+  showToast("Fotoğraf güncellendi!", "success");
+}
+</script>
+</body>
+</html>

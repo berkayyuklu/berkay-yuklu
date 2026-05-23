@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>İletişim — Berkay Yüklü</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg class="nav-logo-img" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#bf953f"/><stop offset="50%" style="stop-color:#fcf6ba"/><stop offset="100%" style="stop-color:#9a6f2a"/></linearGradient></defs>
+      <rect width="36" height="36" rx="10" fill="#111114"/><text x="18" y="25" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="20" fill="url(#g1)">B</text>
+      <circle cx="28" cy="10" r="3" fill="url(#g1)" opacity="0.8"/>
+    </svg>
+    <span class="nav-logo-text">Berkay Yüklü</span>
+  </a>
+  <div class="nav-center">
+    <a href="index.html" class="nav-link">Ana Sayfa</a>
+    <a href="blog.html" class="nav-link">Blog</a>
+    <a href="about.html" class="nav-link">Hakkında</a>
+    <a href="contact.html" class="nav-link active">İletişim</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-outline" id="loginBtn">Giriş Yap</button>
+    <button class="btn btn-gold" id="registerBtn">Kayıt Ol</button>
+    <div class="user-menu" id="userMenu">
+      <button class="user-avatar-btn" id="userMenuBtn"><img class="user-avatar" id="userAvatar" src="" alt=""><span class="user-name" id="userDisplayName"></span></button>
+      <div class="user-dropdown"><a href="profile.html">👤 Profilim</a><div class="divider"></div><button onclick="signOut()">↩ Çıkış Yap</button></div>
+    </div>
+  </div>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="index.html">🏠 Ana Sayfa</a><a href="blog.html">📝 Blog</a><a href="about.html">👤 Hakkında</a>
+</div>
+
+<main>
+  <div class="container">
+    <div class="contact-grid">
+      <div>
+        <div class="section-title" style="margin-bottom:24px">✉ İletişim</div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:16px">Merhaba!</h1>
+        <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:32px">
+          Proje teklifleri, işbirliği fırsatları veya sadece sohbet için benimle iletişime geçebilirsiniz.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)">
+            <span style="font-size:1.4rem">📧</span>
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:2px">E-posta</div>
+              <a href="mailto:yukluberkay@gmail.com" style="color:var(--gold-light);text-decoration:none;font-size:0.9rem">yukluberkay@gmail.com</a>
+            </div>
+          </div>
+          <div id="githubContact" style="display:none;align-items:center;gap:12px;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)">
+            <span style="font-size:1.4rem">💻</span>
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:2px">GitHub</div>
+              <a id="githubLink" href="#" target="_blank" style="color:var(--gold-light);text-decoration:none;font-size:0.9rem"></a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM -->
+      <div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px">
+          <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:20px">Mesaj Gönder</h2>
+          <div class="form-group">
+            <label class="form-label">Adınız</label>
+            <input type="text" id="contactName" class="form-input" placeholder="Adınız Soyadınız">
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-posta</label>
+            <input type="email" id="contactEmail" class="form-input" placeholder="ornek@email.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Konu</label>
+            <input type="text" id="contactSubject" class="form-input" placeholder="Konu">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mesajınız</label>
+            <textarea id="contactMessage" class="form-input" rows="5" placeholder="Mesajınızı yazın..."></textarea>
+          </div>
+          <button class="btn btn-gold" style="width:100%" onclick="sendMessage()">Gönder →</button>
+          <div id="formSuccess" style="display:none;margin-top:12px;padding:12px;background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);border-radius:8px;color:#2ecc71;font-size:0.875rem;text-align:center">
+            ✓ Mesajınız başarıyla gönderildi!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container"><div class="footer-bottom"><span>© 2024 Berkay Yüklü</span><a href="index.html" style="color:var(--gold-light);text-decoration:none">← Ana Sayfa</a></div></div>
+</footer>
+
+<div class="modal-overlay" id="authModal"><div class="modal"><button class="modal-close" onclick="closeModal('authModal')">✕</button><div class="modal-title" id="authModalTitle">Giriş Yap</div><div id="authFormContent"></div></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/app.js"></script>
+<script>
+async function sendMessage() {
+  const name = document.getElementById("contactName").value.trim();
+  const email = document.getElementById("contactEmail").value.trim();
+  const subject = document.getElementById("contactSubject").value.trim();
+  const message = document.getElementById("contactMessage").value.trim();
+
+  if (!name || !email || !message) { showToast("Lütfen tüm alanları doldurun!", "error"); return; }
+
+  await db.collection("messages").add({
+    name, email, subject, message,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    read: false
+  });
+
+  ["contactName","contactEmail","contactSubject","contactMessage"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("formSuccess").style.display = "block";
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const snap = await db.collection("settings").doc("site").get();
+    if (snap.exists && snap.data().github) {
+      const el = document.getElementById("githubContact");
+      el.style.display = "flex";
+      document.getElementById("githubLink").href = snap.data().github;
+      document.getElementById("githubLink").textContent = snap.data().github.replace("https://","");
+    }
+  } catch(e) {}
+});
+</script>
+</body>
+</html>
